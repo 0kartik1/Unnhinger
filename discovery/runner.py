@@ -2,7 +2,7 @@ import os
 import itertools
 from datetime import datetime, timezone
 
-import crud
+import repository
 from discovery.base import BaseDiscoveryProvider, ProviderRateLimitError, ProviderUnavailableError
 from discovery.local_provider import LocalProvider
 from discovery.fullcontact_provider import FullContactProvider
@@ -63,11 +63,11 @@ def run_discovery(
         "errors": [],
     }
 
-    all_people = crud.find_all()
+    all_people = repository.find_all()
 
     # Build the list of pairs to process
     if new_person_id:
-        subject = crud.find_by_id(new_person_id)
+        subject = repository.find_by_id(new_person_id)
         if not subject:
             return summary
         others = [p for p in all_people if str(p["_id"]) != new_person_id]
@@ -82,7 +82,7 @@ def run_discovery(
         name_b = person_b.get("name", id_b[:8])
 
         # Staleness guard
-        last_checked = crud.get_last_checked(id_a, id_b)
+        last_checked = repository.get_last_checked(id_a, id_b)
         if last_checked is not None:
             age_days = (_now() - last_checked.replace(tzinfo=timezone.utc)).days
             if age_days < staleness_days:
@@ -98,12 +98,12 @@ def run_discovery(
                 if links:
                     for lnk in links:
                         lnk["provider"] = provider.name
-                    crud.upsert_connection(id_a, id_b, links, provider.name)
+                    repository.upsert_connection(id_a, id_b, links, provider.name)
                     pair_links_found += len(links)
                     summary["connections_found"] += len(links)
                 else:
                     # Still record that this provider ran (updates last_checked)
-                    crud.upsert_connection(id_a, id_b, [], provider.name)
+                    repository.upsert_connection(id_a, id_b, [], provider.name)
 
             except ProviderRateLimitError:
                 if not quiet:

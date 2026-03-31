@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>People DB{% if self.title() %} — {% block title %}{% endblock %}{% endif %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='app.css') }}" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar navbar-dark bg-dark px-3 d-flex justify-content-between align-items-center">
+  <a class="navbar-brand fw-bold" href="{{ url_for('people.list_people') }}">
+    <i class="bi bi-people-fill me-1"></i> People DB
+  </a>
+  <div class="d-flex gap-2">
+    <form class="d-flex" method="POST" action="{{ url_for('connections.run_all') }}">
+      <button type="submit" class="btn btn-sm btn-outline-light">
+        <i class="bi bi-arrow-repeat me-1"></i>Run All Discovery
+      </button>
+    </form>
+    <a href="{{ url_for('people.add_person_form') }}" class="btn btn-sm btn-primary">
+      <i class="bi bi-person-plus me-1"></i>Add Person
+    </a>
+  </div>
+</nav>
+
+{% with messages = get_flashed_messages(with_categories=True) %}
+  {% if messages %}
+    <div class="flash-bar px-3 pt-2 pb-1">
+      {% for category, msg in messages %}
+        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show py-2 mb-1" role="alert">
+          <i class="bi bi-{% if category == 'success' %}check-circle{% elif category == 'error' or category == 'danger' %}exclamation-circle{% elif category == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+          {{ msg }}
+          <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<div class="d-flex" id="main-wrapper">
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="bg-light border-end d-flex flex-column">
+    <div class="sidebar-header p-2 border-bottom">
+      <div class="input-group input-group-sm">
+        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+        <input type="text" class="form-control border-start-0 ps-0" id="sidebar-search" placeholder="Filter people…">
+      </div>
+    </div>
+    <ul class="list-unstyled sidebar-list mb-0 overflow-auto flex-grow-1" id="people-list">
+      {% for p in all_people %}
+        <li class="sidebar-person-item" data-name="{{ p.name | lower }}">
+          <a href="{{ url_for('people.view_person', id=p._id | string) }}"
+             class="sidebar-item d-block px-3 py-2 text-decoration-none {{ 'active' if active_person_id == p._id | string else '' }}">
+            <span class="fw-semibold d-block text-truncate">{{ p.name }}</span>
+            {% if p.phones %}
+              <small class="text-muted">{{ p.phones[0] }}</small>
+            {% elif p.emails %}
+              <small class="text-muted">{{ p.emails[0] }}</small>
+            {% endif %}
+          </a>
+        </li>
+      {% else %}
+        <li class="px-3 py-3 text-muted small">No people yet.</li>
+      {% endfor %}
+    </ul>
+  </aside>
+
+  <!-- Main content -->
+  <main class="flex-grow-1 overflow-auto p-4">
+    {% block content %}{% endblock %}
+  </main>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Sidebar filter
+  document.getElementById('sidebar-search').addEventListener('input', function () {
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('.sidebar-person-item').forEach(li => {
+      li.style.display = li.dataset.name.includes(q) ? '' : 'none';
+    });
+  });
+</script>
+</body>
+</html>

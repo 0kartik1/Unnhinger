@@ -1,0 +1,71 @@
+/* Two-pane shell */
+#main-wrapper {
+  height: calc(100vh - 56px);
+  overflow: hidden;
+}
+
+#sidebar {
+  width: 270px;
+  min-width: 270px;
+  height: 100%;
+}
+
+.sidebar-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #f8f9fa;
+}
+
+.sidebar-list {
+  flex: 1;
+}
+
+.sidebar-item {
+  color: #212529;
+  border-bottom: 1px solid #e9ecef;
+  transition: background 0.1s;
+  line-height: 1.3;
+}
+
+.sidebar-item:hover {
+  background: #e9ecef;
+  color: #212529;
+}
+
+.sidebar-item.active {
+  background: #0d6efd;
+  color: #fff !important;
+}
+
+.sidebar-item.active small {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+main {
+  height: 100%;
+}
+
+/* Flash bar sticks at top, above the panes */
+.flash-bar {
+  background: #fff;
+  border-bottom: 1px solid #dee2e6;
+  position: relative;
+  z-index: 50;
+}
+
+/* Monospace link-type badges */
+.link-type-badge {
+  font-family: monospace;
+  font-size: 0.75rem;
+}
+
+/* Tighten card headers */
+.card-header {
+  padding: 0.6rem 1rem;
+}
+
+/* Narrow table columns don't grow too much */
+.table td, .table th {
+  vertical-align: middle;
+}

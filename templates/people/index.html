@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}People{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="mb-0"><i class="bi bi-people me-2"></i>All People
+    <span class="badge bg-secondary ms-1">{{ people | length }}</span>
+  </h4>
+  <a href="{{ url_for('people.add_person_form') }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-person-plus me-1"></i>Add Person
+  </a>
+</div>
+
+<!-- Search bar -->
+<form class="mb-3" method="GET" action="{{ url_for('people.list_people') }}">
+  <div class="input-group">
+    <input type="text" class="form-control" name="q" value="{{ query }}" placeholder="Search by name…">
+    <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
+    {% if query %}
+      <a href="{{ url_for('people.list_people') }}" class="btn btn-outline-danger"><i class="bi bi-x"></i></a>
+    {% endif %}
+  </div>
+</form>
+
+{% if people %}
+<div class="table-responsive">
+  <table class="table table-hover align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>Name</th>
+        <th>Phones</th>
+        <th>Emails</th>
+        <th>Social</th>
+        <th class="text-end">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in people %}
+      <tr>
+        <td>
+          <a href="{{ url_for('people.view_person', id=p._id | string) }}" class="fw-semibold text-decoration-none">
+            {{ p.name }}
+          </a>
+        </td>
+        <td class="text-muted small">
+          {% if p.phones %}{{ p.phones | join(', ') }}{% else %}—{% endif %}
+        </td>
+        <td class="text-muted small">
+          {% if p.emails %}{{ p.emails | join(', ') }}{% else %}—{% endif %}
+        </td>
+        <td>
+          {% if p.social_profiles %}
+            {% for sp in p.social_profiles %}
+              <span class="badge bg-light text-dark border me-1">{{ sp.platform }}</span>
+            {% endfor %}
+          {% else %}—{% endif %}
+        </td>
+        <td class="text-end">
+          <a href="{{ url_for('people.view_person', id=p._id | string) }}" class="btn btn-sm btn-outline-secondary me-1">
+            <i class="bi bi-eye"></i>
+          </a>
+          <a href="{{ url_for('people.edit_person_form', id=p._id | string) }}" class="btn btn-sm btn-outline-primary me-1">
+            <i class="bi bi-pencil"></i>
+          </a>
+          <a href="{{ url_for('people.confirm_delete', id=p._id | string) }}" class="btn btn-sm btn-outline-danger">
+            <i class="bi bi-trash"></i>
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+  {% if query %}
+    <i class="bi bi-search display-4 d-block mb-3"></i>
+    <p>No people found matching "<strong>{{ query }}</strong>".</p>
+    <a href="{{ url_for('people.list_people') }}" class="btn btn-outline-secondary btn-sm">Clear search</a>
+  {% else %}
+    <i class="bi bi-person-x display-4 d-block mb-3"></i>
+    <p>No people yet. Add the first one.</p>
+    <a href="{{ url_for('people.add_person_form') }}" class="btn btn-primary btn-sm">
+      <i class="bi bi-person-plus me-1"></i>Add Person
+    </a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

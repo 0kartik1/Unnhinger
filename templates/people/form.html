@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if action == 'edit' else 'Add Person' }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="mb-0">
+    <i class="bi bi-person-{{ 'pencil' if action == 'edit' else 'plus' }} me-2"></i>
+    {{ 'Edit ' + person.name if action == 'edit' else 'Add New Person' }}
+  </h4>
+  {% if action == 'edit' %}
+    <a href="{{ url_for('people.view_person', id=person._id | string) }}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>Cancel
+    </a>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="POST"
+          action="{{ url_for('people.edit_person_submit', id=person._id | string) if action == 'edit' else url_for('people.add_person_submit') }}">
+
+      <!-- Name -->
+      <div class="mb-4">
+        <label class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" name="name"
+               value="{{ person.get('name', '') }}" required placeholder="Full name">
+      </div>
+
+      <!-- Phones -->
+      <div class="mb-4">
+        <label class="form-label fw-semibold">Phone Numbers</label>
+        <div id="phones-container">
+          {% for ph in person.get('phones', []) %}
+          <div class="input-group mb-2">
+            <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+            <input type="text" class="form-control" name="phones" value="{{ ph }}" placeholder="+91…">
+            <button type="button" class="btn btn-outline-danger remove-row"><i class="bi bi-x"></i></button>
+          </div>
+          {% endfor %}
+          {% if not person.get('phones') %}
+          <div class="input-group mb-2">
+            <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+            <input type="text" class="form-control" name="phones" placeholder="+91…">
+            <button type="button" class="btn btn-outline-danger remove-row"><i class="bi bi-x"></i></button>
+          </div>
+          {% endif %}
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-secondary"
+                data-container="phones-container" data-field="phones" data-icon="bi-telephone">
+          <i class="bi bi-plus"></i> Add Phone
+        </button>
+      </div>
+
+      <!-- Emails -->
+      <div class="mb-4">
+        <label class="form-label fw-semibold">Email Addresses</label>
+        <div id="emails-container">
+          {% for em in person.get('emails', []) %}
+          <div class="input-group mb-2">
+            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+            <input type="text" class="form-control" name="emails" value="{{ em }}" placeholder="name@example.com">
+            <button type="button" class="btn btn-outline-danger remove-row"><i class="bi bi-x"></i></button>
+          </div>
+          {% endfor %}
+          {% if not person.get('emails') %}
+          <div class="input-group mb-2">
+            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+            <input type="text" class="form-control" name="emails" placeholder="name@example.com">
+            <button type="button" class="btn btn-outline-danger remove-row"><i class="bi bi-x"></i></button>
+          </div>
+          {% endif %}
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-secondary"
+                data-container="emails-container" data-field="emails" data-icon="bi-envelope">
+          <i class="bi bi-plus"></i> Add Email
+        </button>
+      </div>
+
+      <!-- Addresses -->
+      <div class="mb-4">
+        <label class="form-label fw-semibold">Addresses</label>
+        <div id="addresses-container">
+          {% for i, addr in (person.get('addresses', []) | enumerate) %}
+          <div class="row g-2 mb-2 address-row">
+            <div class="col-3">
+              <input type="text" class="form-control" name="address_label_{{ i }}"
+                     value="{{ addr.get('label', '') }}" placeholder="home, work…">
+            </div>
+            <div class="col-8">
+              <input type="text" class="form-control" name="address_value_{{ i }}"
+                     value="{{ addr.get('value', '') }}" placeholder="123 Main St, City…">
+            </div>
+            <div class="col-1">
+              <button type="button" class="btn btn-outline-danger w-100 remove-row"><i class="bi bi-x"></i></button>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addAddressRow()">
+          <i class="bi bi-plus"></i> Add Address
+        </button>
+      </div>
+
+      <!-- ID Cards -->
+      <div class="mb-4">
+        <label class="form-label fw-semibold">ID Cards</label>
+        <div id="idcards-container">
+          {% for i, card in (person.get('id_cards', []) | enumerate) %}
+          <div class="row g-2 mb-2 idcard-row">
+            <div class="col-3">
+              <input type="text" class="form-control" name="id_card_type_{{ i }}"
+                     value="{{ card.get('type', '') }}" placeholder="aadhaar, passport…">
+            </div>
+            <div class="col-8">
+              <input type="text" class="form-control" name="id_card_number_{{ i }}"
+                     value="{{ card.get('number', '') }}" placeholder="Card number">
+            </div>
+            <div class="col-1">
+              <button type="button" class="btn btn-outline-danger w-100 remove-row"><i class="bi bi-x"></i></button>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addIdCardRow()">
+          <i class="bi bi-plus"></i> Add ID Card
+        </button>
+      </div>
+
+      <!-- Notes -->
+      <div class="mb-4">
+        <label class="form-label fw-semibold">Notes</label>
+        <textarea class="form-control" name="notes" rows="3" placeholder="Any additional notes…">{{ person.get('notes', '') }}</textarea>
+      </div>
+
+      <hr>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-lg me-1"></i>{{ 'Save Changes' if action == 'edit' else 'Add Person' }}
+        </button>
+        {% if action == 'edit' %}
+          <a href="{{ url_for('people.view_person', id=person._id | string) }}" class="btn btn-outline-secondary">Cancel</a>
+        {% else %}
+          <a href="{{ url_for('people.list_people') }}" class="btn btn-outline-secondary">Cancel</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// Remove any repeater row
+document.addEventListener('click', function(e) {
+  if (e.target.closest('.remove-row')) {
+    e.target.closest('.input-group, .row').remove();
+  }
+});
+
+// Add simple single-field rows (phones, emails)
+document.querySelectorAll('[data-container]').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const container = document.getElementById(this.dataset.container);
+    const field = this.dataset.field;
+    const icon = this.dataset.icon || 'bi-dash';
+    const div = document.createElement('div');
+    div.className = 'input-group mb-2';
+    div.innerHTML = `
+      <span class="input-group-text"><i class="bi ${icon}"></i></span>
+      <input type="text" class="form-control" name="${field}">
+      <button type="button" class="btn btn-outline-danger remove-row"><i class="bi bi-x"></i></button>`;
+    container.appendChild(div);
+    div.querySelector('input').focus();
+  });
+});
+
+// Address rows (indexed)
+let addrCount = {{ person.get('addresses', []) | length }};
+function addAddressRow() {
+  const container = document.getElementById('addresses-container');
+  const div = document.createElement('div');
+  div.className = 'row g-2 mb-2 address-row';
+  div.innerHTML = `
+    <div class="col-3">
+      <input type="text" class="form-control" name="address_label_${addrCount}" placeholder="home, work…">
+    </div>
+    <div class="col-8">
+      <input type="text" class="form-control" name="address_value_${addrCount}" placeholder="123 Main St, City…">
+    </div>
+    <div class="col-1">
+      <button type="button" class="btn btn-outline-danger w-100 remove-row"><i class="bi bi-x"></i></button>
+    </div>`;
+  container.appendChild(div);
+  div.querySelector('input').focus();
+  addrCount++;
+}
+
+// ID card rows (indexed)
+let idCardCount = {{ person.get('id_cards', []) | length }};
+function addIdCardRow() {
+  const container = document.getElementById('idcards-container');
+  const div = document.createElement('div');
+  div.className = 'row g-2 mb-2 idcard-row';
+  div.innerHTML = `
+    <div class="col-3">
+      <input type="text" class="form-control" name="id_card_type_${idCardCount}" placeholder="aadhaar, passport…">
+    </div>
+    <div class="col-8">
+      <input type="text" class="form-control" name="id_card_number_${idCardCount}" placeholder="Card number">
+    </div>
+    <div class="col-1">
+      <button type="button" class="btn btn-outline-danger w-100 remove-row"><i class="bi bi-x"></i></button>
+    </div>`;
+  container.appendChild(div);
+  div.querySelector('input').focus();
+  idCardCount++;
+}
+</script>
+{% endblock %}
